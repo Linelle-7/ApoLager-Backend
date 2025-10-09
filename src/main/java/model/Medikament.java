@@ -20,11 +20,12 @@ public class Medikament {
     private int abgelaufen;
     private int verkauft;
 
+    //Packung abhängige ...........
+
     //Konstruktor
     public Medikament(String pzn, String name, double price, LocalDate mhd, int menge){
         if(menge<0){
             menge*=-1;
-
         }
         this.pzn=pzn;
         this.name=name;

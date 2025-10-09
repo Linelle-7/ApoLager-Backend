@@ -1,4 +1,4 @@
-package util;
+package service;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -38,6 +38,8 @@ public class Statistik {
     public int getVerkauft() { return verkauft; }
     public int getVerworfen() { return verworfen; }
     public String getName(){return name;}
+
+    //TODO: Anpassungen vornehmen, um Top -down-Kommunikation zu schaffen.
 
     public void statistik() throws DocumentException, IOException {
         Document document = new Document();

@@ -1,6 +1,8 @@
-package de.Apotheke;
+package service;
 
 import com.itextpdf.text.DocumentException;
+import data_Repo.MedikamentRepository;
+import model.Medikament;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -16,15 +18,15 @@ public class LagerService {
     }
 
     public void increaseCount(String pzn, int menge, LocalDate ablauf) {
-        //System.out.println( "Increase laüft.....");
-        Medikament charge = repo.findByPznAndAblauf(pzn, ablauf);
+        //System.out.println( "Increasing.....");
+        // Existenz Medikament mit gegebene pzn prüfen
+        if (!repo.existsByPzn(pzn)) {
+            throw new IllegalArgumentException("Medikament mit dem Pharmazentralnummer " + pzn + " existiert nicht!");
+        }
+        Medikament charge = repo.findByPznAndAblauf(pzn, ablauf); // Medikament mit gleiche pzn und Ablaufsdatum
         if (charge != null) {
             charge.aufstocken(menge);
         } else {
-            // Existenz mEdikament mit gegebene pzn prüfen
-            if (!repo.existsByPzn(pzn)) {
-                throw new IllegalArgumentException("Medikament mit dem Pharmazentralnummer " + pzn + " existiert nicht!");
-            }
             // Wenn Pzn existiert aber nur keine Instanz mit dem gegebenen Ablaufdatum hat, dann neue instanz mit diesem Datum erzeugen
             Medikament ref = repo.findByPzn(pzn).iterator().next();
             Medikament neu = new Medikament(pzn, ref.name(),ref.price(), ablauf,menge);
@@ -34,8 +36,8 @@ public class LagerService {
 
     // Verkauf (FIFO: frühestes Ablaufdatum zuerst)
     public int sell(String pzn, int menge) {
-        //System.out.println( "Sell läuft.....");
-       return repo.selling(pzn,menge);
+        //System.out.println( "Selling .....");
+       return repo.sellMed(pzn,menge);
     }
 
     public void statistik() throws DocumentException, IOException {
@@ -45,10 +47,10 @@ public class LagerService {
 
     public void inventur()  {
         Inventur inv= new Inventur(this.repo);
-        inv.inventurAbgleich();
+        inv.vergleicheCsvUndSoftware();
     }
 
-    public String toString(){
+    public String printMed(){
         return repo.toString();
     }
 

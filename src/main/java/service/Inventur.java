@@ -1,4 +1,4 @@
-package util;
+package service;
 
 import data_Repo.MedikamentRepository;
 
@@ -11,7 +11,7 @@ public class Inventur {
     private MedikamentRepository repo;
     public Inventur(MedikamentRepository repo) {this.repo = repo;}
 
-    public void inventurAbgleich(){
+    public void  vergleicheCsvUndSoftware(){
         String dateiPfad = "inventur.csv"; // Pfad zur CSV-Datei
         List<String> lines = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(dateiPfad))) {
@@ -21,12 +21,11 @@ public class Inventur {
                 String[] parts = line.split(";");
                 String pzn = parts[0];
                 int menge = Integer.parseInt(parts[1]);
-                Map<String, Integer> result=repo.checkQuantity(pzn, menge);
+                Map<String, Integer> result=repo.checkQuantityInSoftware(pzn, menge);
                     if( result!=null) {
                         Map.Entry<String, Integer> entry = result.entrySet().iterator().next();
                         parts[1]=String.valueOf(entry.getValue());
                         System.out.println( entry.getKey() + " ; " + entry.getValue());
-
                 }
 
                 line = String.join(";", parts);
@@ -45,7 +44,6 @@ public class Inventur {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
 
     }
 
