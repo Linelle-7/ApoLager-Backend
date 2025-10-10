@@ -5,7 +5,6 @@ import com.itextpdf.text.pdf.PdfWriter;
 import data_Repo.MedikamentRepository;
 import util.PdfManager;
 
-import util.PdfManager;
 
 import java.io.*;
 import java.time.LocalDateTime;
