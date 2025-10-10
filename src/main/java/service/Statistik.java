@@ -1,17 +1,15 @@
 package service;
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Phrase;
-import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import data_Repo.MedikamentRepository;
+import util.PdfManager;
+
+import util.PdfManager;
 
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.stream.Stream;
 
 public class Statistik {
     private String pzn;
@@ -28,7 +26,6 @@ public class Statistik {
     public Statistik( String pzn) {
         this.pzn = pzn;
     }
-
     public void addGekauft(int menge) { gekauft += menge; }
     public void addVerkauft(int menge) { verkauft += menge; }
     public void addVerwerfen(int menge) { verworfen += menge; }
@@ -39,8 +36,6 @@ public class Statistik {
     public int getVerworfen() { return verworfen; }
     public String getName(){return name;}
 
-    //TODO: Anpassungen vornehmen, um Top -down-Kommunikation zu schaffen.
-
     public void statistik() throws DocumentException, IOException {
         Document document = new Document();
         // Writer verknüpfen: sagt dem Document, wohin geschrieben wird
@@ -50,37 +45,17 @@ public class Statistik {
         FileOutputStream fos=new FileOutputStream(dateiname);
 
         PdfWriter.getInstance(document,fos );
-
         document.open();
+        Paragraph p=new Paragraph( "Statistik am "+ now +"\n");
+        p.setAlignment( Element.ALIGN_CENTER);
+        document.add(p);
+        document.add(new Paragraph(" ")); // damit sichere ich, dass es Tabelle die oben geschriebene Paragraph nicht beschädigt/ versteckt.
 
-        //KopZeile Einfuegen
-        //addTableHeader(table);
-        // Tabelle aus Medikament repository Holen und in dokument hinzufuegen.
-        PdfPTable table = repo.shareData();
+        String[][] data = repo.collectDataForStatistik();
+        PdfPTable table=new PdfManager().CreateAndInsertdata(data); // Methode aus Klasse PdfManager derUtil Package, die Table erzeugt und mit gegebenen Daten ausfüllt und zurückgibt.
         document.add(table);
         document.close();
         fos.close();
-    }
-
-    // Code aus https://www.baeldung.com/java-pdf-creation kopiert und entsprechend angepasst.
-    private void addTableHeader(PdfPTable table) {
-        Stream.of("ID", "Produkt", "Gesamt", "Verkauft", "Verworfen", "Übrig")
-                .forEach(columnTitle -> {
-                    PdfPCell header = new PdfPCell();
-                    header.setBackgroundColor(BaseColor.LIGHT_GRAY);
-                    header.setBorderWidth(2);
-                    header.setPhrase(new Phrase(columnTitle));
-                    table.addCell(header);
-                });
-    }
-
-    public static void addRows(PdfPTable table, String apoNum, String name, int gesamt, int verkauft, int verworfen) {
-        table.addCell(apoNum);
-        table.addCell(name);
-        table.addCell(String.valueOf(gesamt));
-        table.addCell(String.valueOf(verkauft));
-        table.addCell(String.valueOf(verworfen));
-        //table.addCell(String.valueOf(uebrig));
     }
 
 }

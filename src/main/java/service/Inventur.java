@@ -16,6 +16,7 @@ public class Inventur {
         List<String> lines = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(dateiPfad))) {
             String line;
+            System.out.println("Die ungleiche Einträge sind:");
             while ((line = br.readLine()) != null) {
                 // CSV-Spalten trennen (z.B. ; oder ,)
                 String[] parts = line.split(";");
@@ -27,7 +28,6 @@ public class Inventur {
                         parts[1]=String.valueOf(entry.getValue());
                         System.out.println( entry.getKey() + " ; " + entry.getValue());
                 }
-
                 line = String.join(";", parts);
                 lines.add(line);
             }
@@ -36,17 +36,15 @@ public class Inventur {
         }
 
         // CSV Datei aktualisieren
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(dateiPfad))) {
+       /* try (BufferedWriter bw = new BufferedWriter(new FileWriter(dateiPfad))) {
             for (String l : lines) {
                 bw.write(l);
                 bw.newLine();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-
+        }*/
     }
 
-
-    // TODO : inventur und Statistik in service und methoden noch teilen. In util : lesen, Schreiben....
+    // TOD: inventur und Statistik in service und methoden noch teilen. In util : lesen, Schreiben....
 }

@@ -8,11 +8,8 @@ import java.time.LocalDate;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
-
-        // Repository + Service initialisieren
-        MedikamentRepository repo = new MedikamentRepository();
-        LagerService service = new LagerService(repo);
+        //  Service initialisieren
+        LagerService service = new LagerService();
 
         Medikament para=new Medikament("04324188","Paracetamol", 5, LocalDate.of(2025,10,1),5);
         Medikament ibu=new Medikament("01126111","Ibuprofen", 10, LocalDate.of(2025,9,15),26);

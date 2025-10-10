@@ -11,7 +11,8 @@ import java.util.*;
 public class LagerService {
 
     private MedikamentRepository repo;
-    public LagerService(MedikamentRepository repository) {this.repo = repository;}
+    public LagerService() {
+        this.repo = new MedikamentRepository();}
 
     public void addMedikament(Medikament m) {
         repo.save(m);
@@ -36,8 +37,21 @@ public class LagerService {
 
     // Verkauf (FIFO: frühestes Ablaufdatum zuerst)
     public int sell(String pzn, int menge) {
-        //System.out.println( "Selling .....");
-       return repo.sellMed(pzn,menge);
+        if(menge<=0){ //Pruefe, ob gewünschte Menge einem gültigen Eintrag ist.
+            throw new IllegalArgumentException("Fehlerhafte Eintrag " + menge + " ist kein gueltigen Eintrag!");
+        }
+        // Prueft ob Dieses medikament ueberhaupt im Lager enthalten ist.
+        if (repo.existsByPzn(pzn)){
+            // jetzt dann prüefen, ob die Anforderung erfüllt sein kann
+            int capacity = repo.count(pzn);
+            if(capacity>=menge){
+                return repo.sellMed(pzn,menge);
+            }else{
+                throw new IllegalArgumentException("Nicht genug Bestand für das Medikament mit dem Pharmazentralnummer " + pzn+". Zu verkaufen " + menge+ " aber aktuell "+ capacity+ " im Bestand.");
+            }
+        }else{
+                throw new IllegalArgumentException("Medikament mit dem Pharmazentralnummer " + pzn + " nicht gefunden!");
+        }
     }
 
     public void statistik() throws DocumentException, IOException {

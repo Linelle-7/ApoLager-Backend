@@ -17,8 +17,8 @@ class LagerServiceTest {
 
     @BeforeEach
     void setup() {
-        medRep = new MedikamentRepository();
-        service = new LagerService(medRep);
+        //medRep = new MedikamentRepository();
+        service = new LagerService();
         Medikament para=new Medikament("04324188","Paracetamol", 5, LocalDate.of(2025,10,1),5);
         Medikament ibu=new Medikament("01126111","Ibuprofen", 10, LocalDate.of(2025,9,15),26);
         Medikament eff=new Medikament("01126122","Efferalgan", 20, LocalDate.of(2025,6,5),20);

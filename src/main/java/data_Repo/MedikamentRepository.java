@@ -1,16 +1,11 @@
 package data_Repo;
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.Phrase;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
 import service.Statistik;
 import model.Medikament;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Stream;
 
-public class MedikamentRepository { // TODO Methode die explizit nach mhd sortiert anstatt treemap kompakt zu nutzen.
+public class MedikamentRepository { // ......TODO Methode die explizit nach mhd sortiert anstatt treemap kompakt zu nutzen.
     private Map< String, TreeMap<LocalDate, Medikament>> lager =new HashMap<>();
     private Map<String, Statistik> statistik = new HashMap<>();
     private Statistik getStatistik(String pzn) {
@@ -21,17 +16,19 @@ public class MedikamentRepository { // TODO Methode die explizit nach mhd sortie
     public void save( Medikament m){
         TreeMap<LocalDate, Medikament> med=lager.computeIfAbsent(m.getPzn(), k-> new TreeMap<>());
         med.put(m.ablaufsdatum(), m);
+
+        // zustand dieses Medikament in Statistik aktualisieren.
         getStatistik(m.getPzn()).addGekauft(m.bestand());
         getStatistik(m.getPzn()).setName(m.name());
     }
 
-    private int count(TreeMap<LocalDate, Medikament> list){
+    public int count(String pzn){
+        TreeMap<LocalDate, Medikament> meds= findByPzn2(pzn);
         Medikament medInstance;
         int total=0;
-        Iterator <Map.Entry<LocalDate, Medikament>> itList =list.entrySet().iterator();
+        Iterator <Map.Entry<LocalDate, Medikament>> itList =meds.entrySet().iterator();
         while(itList.hasNext()){
             medInstance=itList.next().getValue();
-
             // Nur
             if(medInstance.ablaufsdatum().isAfter(LocalDate.now())){
                 total+=medInstance.bestand();
@@ -39,9 +36,7 @@ public class MedikamentRepository { // TODO Methode die explizit nach mhd sortie
                 getStatistik(medInstance.getPzn()).addVerwerfen(medInstance.bestand());
                 //delete(medInstance.getPzn(), medInstance.ablaufsdatum());
                 itList.remove();
-
             }
-
         }
         return total;
     }
@@ -53,44 +48,26 @@ public class MedikamentRepository { // TODO Methode die explizit nach mhd sortie
     }
 
     public int sellMed( String pzn, int menge){
-        //System.out.println( "Sell222 läuft.....");
-
         TreeMap<LocalDate, Medikament> meds = findByPzn2(pzn);
-        // Prueft ob Dieses medikament ueberhaupt im Lager enthalten ist.
-        if (meds == null) {
-            throw new IllegalArgumentException("Medikament mit dem Pharmazentralnummer " + pzn + " nicht gefunden!");
-        }
-        //Pruefe, ob gewünschte Menge einem gültigen Eintrag ist.
-        if(menge<=0){
-            throw new IllegalArgumentException("Fehlerhafte Eintrag " + menge + " ist kein gueltigen Eintrag!");
-        }
-
         int toSell = menge;
-        int capacity = count(meds);
+        int capacity = count(pzn);
+        while ( !meds.isEmpty()) {
+            Map.Entry<LocalDate, Medikament> entry = meds.firstEntry();
+            Medikament charge = entry.getValue();
+            int available= charge.bestand();
 
-        if( capacity >= menge){
-            while ( !meds.isEmpty()) {
-                Map.Entry<LocalDate, Medikament> entry = meds.firstEntry();
-                Medikament charge = entry.getValue();
-                int available= charge.bestand();
-
-                // Instance von Med kleiner als gewünscht? das erstmal nehmen und restlichen Stück in der nächsten Instanz"
-                if (available <= toSell) {
-                    // komplette Charge verkaufen
-                    charge.verkaufen(available);
-                    toSell -= available;
-                    meds.remove(entry.getKey()); // leere Charge raus
-                } else {
-                    charge.verkaufen(toSell);
-                    break;
-                }
+            if (available <= toSell) { // Instance von Med kleiner als gewünscht? das erstmal nehmen und restlichen Stück in der nächsten Instanz"
+                // komplette Charge verkaufen
+                charge.verkaufen(available);
+                toSell -= available;
+                meds.remove(entry.getKey()); // leere Charge raus
+            } else {
+                charge.verkaufen(toSell);
+                break;
             }
-            getStatistik(pzn).addVerkauft(menge);
-            return capacity-menge;
-        }else{
-                throw new IllegalArgumentException("Nicht genug Bestand für das Medikament mit dem Pharmazentralnummer " + pzn+". Zu verkaufen " + menge+ " aber aktuell "+ capacity+ " im Bestand.");
-
         }
+            getStatistik(pzn).addVerkauft(menge); // zustand dieses Medikament in Statistik aktualisieren.
+            return capacity-menge;
     }
 
     // Ein bestimmtes Medikament mithilfe pzn und Ablaufsdatum finden
@@ -106,9 +83,6 @@ public class MedikamentRepository { // TODO Methode die explizit nach mhd sortie
         if (charges == null) return Collections.emptyList();
         return charges.values();
     }
-
-    // Gesamtes Lager
-    public Map<String, TreeMap<LocalDate, Medikament>> findAll() { return lager; }
 
     // Entfernen einer Charge
     public void delete(String pzn, LocalDate ablauf) {
@@ -126,38 +100,34 @@ public class MedikamentRepository { // TODO Methode die explizit nach mhd sortie
         return lager.containsKey(pzn);
     }
 
-    public PdfPTable shareData(){ //TODO Noch verbessern
-        PdfPTable table = new PdfPTable(5);
-        // Kopfzeile
-        Stream.of("ID", "Produkt", "Gesamt", "Verkauft", "Verworfen")
-                .forEach(title -> {
-                    PdfPCell header = new PdfPCell(new Phrase(title));
-                    header.setBackgroundColor(BaseColor.LIGHT_GRAY);
-                    header.setBorderWidth(2);
-                    table.addCell(header);
-                });
-
+    public  String[][] collectDataForStatistik(){
         Set<String> keySet=lager.keySet();
+        int n=keySet.size();
+        String[][] recap=new String[n][5];
+        int i=0;
         for(String s: keySet){
-            Statistik.addRows(table,s,getStatistik(s).getName(), getStatistik(s).getGekauft(),getStatistik(s).getVerkauft(),
-                    getStatistik(s).getVerworfen());
+            recap[i][0]=s;
+            recap[i][1]=getStatistik(s).getName();
+            recap[i][2]=""+getStatistik(s).getGekauft();
+            recap[i][3]=""+getStatistik(s).getVerkauft();
+            recap[i++][4]= ""+getStatistik(s).getVerworfen();
         }
-        return table;
+        return recap;
     }
 
-    public Map< String,Integer> checkQuantityInSoftware(   String id, int qty){
-        if(!existsByPzn(id)){
+    public Map< String,Integer> checkQuantityInSoftware(   String pzn, int qty){
+        if(!existsByPzn(pzn)){
             Map<String, Integer> map= new HashMap <>();
-            map.put("", -1);
+            map.put(pzn, -1);
             return map;
         }
         Set<String> keySet=lager.keySet();
         for(String s: keySet){
-            if ( id.equals(s)){
+            if ( pzn.equals(s)){
                 int tmpQty=getStatistik(s).getGekauft()-getStatistik(s).getVerkauft()-getStatistik(s).getVerworfen();
                 if(! (qty==tmpQty)){
                     Map<String, Integer> map= new HashMap <>();
-                    map.put(id, tmpQty);
+                    map.put(pzn, tmpQty);
                     return map;
                 }
             }
@@ -180,8 +150,6 @@ public class MedikamentRepository { // TODO Methode die explizit nach mhd sortie
 
         return sb.toString();
     }
-
-    // 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
 
     public ArrayList<Medikament> getMedikamente() {
         ArrayList<Medikament> list = new ArrayList<>();
