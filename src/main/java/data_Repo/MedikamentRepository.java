@@ -1,4 +1,6 @@
 package data_Repo;
+import model.MedikamentenPackung;
+import model.MedikamentenTyp;
 import service.Statistik;
 import model.Medikament;
 
@@ -6,7 +8,8 @@ import java.time.LocalDate;
 import java.util.*;
 
 public class MedikamentRepository { // ......TODO Methode die explizit nach mhd sortiert anstatt treemap kompakt zu nutzen.
-    private Map< String, TreeMap<LocalDate, Medikament>> lager =new HashMap<>();
+    private Map< String, TreeMap<LocalDate, Medikament>> lager1 =new HashMap<>();
+    private Map< String, TreeMap<LocalDate, MedikamentenPackung>> lager =new HashMap<>();
     private Map<String, Statistik> statistik = new HashMap<>();
     private Statistik getStatistik(String pzn) {
         return statistik.computeIfAbsent(pzn, k -> new Statistik( pzn));
@@ -14,26 +17,33 @@ public class MedikamentRepository { // ......TODO Methode die explizit nach mhd 
 
     // Medikament speichern oder aufstocken
     public void save( Medikament m){
-        TreeMap<LocalDate, Medikament> med=lager.computeIfAbsent(m.getPzn(), k-> new TreeMap<>());
-        med.put(m.ablaufsdatum(), m);
+        // Wenn Medikament mit diesem pzn noch nicht enthalten ist, dann einfach eine neue Treemap erstellen und dort hinzufügen.
+        TreeMap<LocalDate, MedikamentenPackung> meds=lager.computeIfAbsent(m.getTyp().getPzn(), k-> new TreeMap<>());
+
+        LocalDate mhd=m.getPackung().ablaufsdatum();
+        if(meds.containsKey(mhd)){
+            meds.get(mhd).aufstocken(m.getPackung().bestand()); //existiert es schon was mit selben pzn und ablaufdatum? bestand einfach hochzahlen
+        }else{
+            meds.put(m.getPackung().ablaufsdatum(), m.getPackung()); //selben pzn aber ablaufsDatum nicht gleich? Treemap dafür erstellen Packung speichern.
+        }
 
         // zustand dieses Medikament in Statistik aktualisieren.
-        getStatistik(m.getPzn()).addGekauft(m.bestand());
-        getStatistik(m.getPzn()).setName(m.name());
+        getStatistik(m.getTyp().getPzn()).addGekauft(m.getPackung().bestand());
+        getStatistik(m.getTyp().getPzn()).setName(m.getTyp().name());
     }
 
     public int count(String pzn){
-        TreeMap<LocalDate, Medikament> meds= findByPzn2(pzn);
-        Medikament medInstance;
+        TreeMap<LocalDate, MedikamentenPackung> meds= findByPzn2(pzn);
+        MedikamentenPackung medInstance;
         int total=0;
-        Iterator <Map.Entry<LocalDate, Medikament>> itList =meds.entrySet().iterator();
+        Iterator <Map.Entry<LocalDate, MedikamentenPackung>> itList =meds.entrySet().iterator();
         while(itList.hasNext()){
             medInstance=itList.next().getValue();
             // Nur
             if(medInstance.ablaufsdatum().isAfter(LocalDate.now())){
                 total+=medInstance.bestand();
             }else{
-                getStatistik(medInstance.getPzn()).addVerwerfen(medInstance.bestand());
+                getStatistik(medInstance.getTyp().getPzn()).addVerwerfen(medInstance.bestand());
                 //delete(medInstance.getPzn(), medInstance.ablaufsdatum());
                 itList.remove();
             }
@@ -41,19 +51,19 @@ public class MedikamentRepository { // ......TODO Methode die explizit nach mhd 
         return total;
     }
 
-    private TreeMap<LocalDate, Medikament> findByPzn2(String pzn) {
-        TreeMap<LocalDate, Medikament> charges = lager.get(pzn);
+    private TreeMap<LocalDate, MedikamentenPackung> findByPzn2(String pzn) {
+        TreeMap<LocalDate, MedikamentenPackung> charges = lager.get(pzn);
         if (charges == null) return null;
         return charges;
     }
 
     public int sellMed( String pzn, int menge){
-        TreeMap<LocalDate, Medikament> meds = findByPzn2(pzn);
+        TreeMap<LocalDate, MedikamentenPackung> meds = findByPzn2(pzn);
         int toSell = menge;
         int capacity = count(pzn);
         while ( !meds.isEmpty()) {
-            Map.Entry<LocalDate, Medikament> entry = meds.firstEntry();
-            Medikament charge = entry.getValue();
+            Map.Entry<LocalDate, MedikamentenPackung> entry = meds.firstEntry();
+            MedikamentenPackung charge = entry.getValue();
             int available= charge.bestand();
 
             if (available <= toSell) { // Instance von Med kleiner als gewünscht? das erstmal nehmen und restlichen Stück in der nächsten Instanz"
@@ -71,22 +81,22 @@ public class MedikamentRepository { // ......TODO Methode die explizit nach mhd 
     }
 
     // Ein bestimmtes Medikament mithilfe pzn und Ablaufsdatum finden
-    public Medikament findByPznAndAblauf( String pzn, LocalDate ablauf){
-        TreeMap<LocalDate, Medikament> medInstance=lager.get(pzn);
+    public MedikamentenPackung findByPznAndAblauf( String pzn, LocalDate ablauf){
+        TreeMap<LocalDate, MedikamentenPackung> medInstance=lager.get(pzn);
         if( medInstance==null ) return null;
         return medInstance.get(ablauf);
     }
 
     // Alle Chargen einer PZN
-    public Collection<Medikament> findByPzn(String pzn) {
-        TreeMap<LocalDate, Medikament> charges = lager.get(pzn);
-        if (charges == null) return Collections.emptyList();
-        return charges.values();
+    public MedikamentenTyp copyTyp(String pzn) {
+        TreeMap<LocalDate, MedikamentenPackung> charges = lager.get(pzn);
+        if (charges == null) return null;
+        return charges.firstEntry().getValue().getTyp();
     }
 
     // Entfernen einer Charge
     public void delete(String pzn, LocalDate ablauf) {
-        TreeMap<LocalDate, Medikament> charges = lager.get(pzn);
+        TreeMap<LocalDate, MedikamentenPackung> charges = lager.get(pzn);
         if (charges != null) {
             charges.remove(ablauf);
             if (charges.isEmpty()) {
@@ -135,27 +145,27 @@ public class MedikamentRepository { // ......TODO Methode die explizit nach mhd 
         return null;
     }
 
-    public String printlager() {
+    public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== Lagerbestand ===\n");
 
         for (String pzn : lager.keySet()) {
             sb.append("PZN ").append(pzn).append(":\n");
-            TreeMap<LocalDate, Medikament> charges = lager.get(pzn);
+            TreeMap<LocalDate, MedikamentenPackung> charges = lager.get(pzn);
 
-            for (Medikament m : charges.values()) {
-                sb.append("   ").append(m).append("\n"); // nutzt Medikament.toString()
+            for (MedikamentenPackung m : charges.values()) {
+                sb.append("   ").append(m.getTyp()).append(m).append("\n"); // nutzt Medikament.toString()
             }
         }
 
         return sb.toString();
     }
 
-    public ArrayList<Medikament> getMedikamente() {
-        ArrayList<Medikament> list = new ArrayList<>();
+    public ArrayList<MedikamentenPackung> getMedikamente() {
+        ArrayList<MedikamentenPackung> list = new ArrayList<>();
 
         for (String pzn : lager.keySet()) {
-            TreeMap<LocalDate, Medikament> medInstance = findByPzn2(pzn);
+            TreeMap<LocalDate, MedikamentenPackung> medInstance = findByPzn2(pzn);
             assert medInstance != null;
             list.addAll(medInstance.values());
         }

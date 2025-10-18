@@ -20,6 +20,7 @@ public class Main {
         service.addMedikament(para);service.addMedikament(ibu);service.addMedikament(eff);service.addMedikament(pen);service.addMedikament(levo);
         //System.out.println("Einfügen \n"+ service.toString());
 
+        System.out.println(service.printLager());
         // Medikamente einkaufen
         service.increaseCount("04324188", 100, LocalDate.of(2026, 5, 1));
         service.increaseCount("04324188", 50, LocalDate.of(2026, 12, 31));
@@ -32,15 +33,16 @@ public class Main {
 
         // 30 Aspirin verkauft
         service.sell("01126111", 20);   // 20 anderes Medikament verkauft
+        System.out.println(service.printLager());
 
-        //System.out.println("Nach Increase und Sell \n" +service.toString());
-        try {
-            service.statistik();
-        }catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-
-        //prüfe, Inventur
-        service.inventur();
+//        //System.out.println("Nach Increase und Sell \n" +service.toString());
+//        try {
+//            service.statistik();
+//        }catch (Exception e) {
+//            System.out.println(e.getMessage());
+//        }
+//
+//        //prüfe, Inventur
+//        service.inventur();
         }
     }

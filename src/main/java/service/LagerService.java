@@ -3,6 +3,7 @@ package service;
 import com.itextpdf.text.DocumentException;
 import data_Repo.MedikamentRepository;
 import model.Medikament;
+import model.MedikamentenPackung;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -19,18 +20,13 @@ public class LagerService {
     }
 
     public void increaseCount(String pzn, int menge, LocalDate ablauf) {
-        //System.out.println( "Increasing.....");
+//        System.out.println( "Increasing.....");
         // Existenz Medikament mit gegebene pzn prüfen
         if (!repo.existsByPzn(pzn)) {
             throw new IllegalArgumentException("Medikament mit dem Pharmazentralnummer " + pzn + " existiert nicht!");
-        }
-        Medikament charge = repo.findByPznAndAblauf(pzn, ablauf); // Medikament mit gleiche pzn und Ablaufsdatum
-        if (charge != null) {
-            charge.aufstocken(menge);
         } else {
             // Wenn Pzn existiert aber nur keine Instanz mit dem gegebenen Ablaufdatum hat, dann neue instanz mit diesem Datum erzeugen
-            Medikament ref = repo.findByPzn(pzn).iterator().next();
-            Medikament neu = new Medikament(pzn, ref.name(),ref.price(), ablauf,menge);
+            Medikament neu = new Medikament( repo.copyTyp(pzn), ablauf,menge);
             repo.save(neu);
         }
     }
@@ -64,11 +60,11 @@ public class LagerService {
         inv.vergleicheCsvUndSoftware();
     }
 
-    public String printMed(){
+    public String printLager(){
         return repo.toString();
     }
 
-    public ArrayList<Medikament> getMedikamente() {
+    public ArrayList<MedikamentenPackung> getMedikamente() {
         return repo.getMedikamente();
     }
 }
