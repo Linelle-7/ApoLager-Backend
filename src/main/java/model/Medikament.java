@@ -3,24 +3,29 @@ import java.time.LocalDate;
 
 public class Medikament {
 
-    private MedikamentenTyp typ;
-    private MedikamentenPackung packung;
+    private MedikamentenTyp medTyp;
+    private Ablaufsdatum mhd;
+    private int bestand;
+
 
     //Konstruktoren
-    public Medikament(MedikamentenTyp medTyp, LocalDate  mhd, int menge){
+    public Medikament(MedikamentenTyp medTyp, Ablaufsdatum  mhd, int menge){
         if (menge>0){
-            typ=medTyp;
-            packung=new MedikamentenPackung(typ, mhd, menge);
+            this.medTyp=medTyp;
+            this.mhd=mhd;
+            this.bestand=menge;
+
         }else {
             throw new IllegalArgumentException("Fehlerhafte Eintrag. " + menge + " ist kein gueltigen Eintrag!");
         }
 
     }
 
-    public Medikament(String pzn, String name, double price, LocalDate mhd, int menge) {
+    public Medikament(String pzn, String name, double price,Ablaufsdatum mhd, int menge) {
         if (menge > 0) {
-            typ = new MedikamentenTyp(pzn, name, price);
-            packung = new MedikamentenPackung(typ, mhd, menge);
+            this.medTyp= new MedikamentenTyp(pzn, name, price);
+            this.mhd=mhd;
+            this.bestand=menge;
 
         } else {
             throw new IllegalArgumentException("Fehlerhafte Eintrag. " + menge + " ist kein gueltigen Eintrag!");
@@ -28,13 +33,16 @@ public class Medikament {
     }
 
 
-    //public MedikamentenTyp getTyp() { return typ; }
-    public MedikamentenPackung  getPackung() { return packung; }
+    public MedikamentenTyp getTyp() { return medTyp; }
+    public Ablaufsdatum ablaufsdatum(){ return mhd;}
+    public int bestand(){ return bestand;}
+    public void updateQuantity(int menge){ bestand += menge; }
+
 
     @Override
     public String toString() {
         return "Medikament{" +
-                typ.toString() + packung.toString() +
-                '}';
+                medTyp.toString() +  "Bestand: " +bestand + " Ablaufdatum: "+ mhd +'}';
     }
+
 }

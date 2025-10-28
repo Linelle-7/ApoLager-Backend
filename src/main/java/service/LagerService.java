@@ -2,8 +2,8 @@ package service;
 
 import com.itextpdf.text.DocumentException;
 import data_Repo.MedikamentRepository;
+import model.Ablaufsdatum;
 import model.Medikament;
-import model.MedikamentenPackung;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -19,8 +19,7 @@ public class LagerService {
         repo.save(m);
     }
 
-    public void increaseCount(String pzn, int menge, LocalDate ablauf) {
-//        System.out.println( "Increasing.....");
+    public void increaseCount(String pzn, int menge, Ablaufsdatum ablauf) {
         // Existenz Medikament mit gegebene pzn prüfen
         if (!repo.existsByPzn(pzn)) {
             throw new IllegalArgumentException("Medikament mit dem Pharmazentralnummer " + pzn + " existiert nicht!");
@@ -38,7 +37,7 @@ public class LagerService {
         }
         // Prueft ob Dieses medikament ueberhaupt im Lager enthalten ist.
         if (repo.existsByPzn(pzn)){
-            // jetzt dann prüefen, ob die Anforderung erfüllt sein kann
+            // jetzt prüfen, ob die Anforderung erfüllt sein kann
             int capacity = repo.count(pzn);
             if(capacity>=menge){
                 return repo.sellMed(pzn,menge);
@@ -64,7 +63,7 @@ public class LagerService {
         return repo.toString();
     }
 
-    public ArrayList<MedikamentenPackung> getMedikamente() {
+    public ArrayList<Medikament> getMedikamente() {
         return repo.getMedikamente();
     }
 }
