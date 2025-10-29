@@ -7,21 +7,22 @@ import model.Medikament;
 import java.util.*;
 
 public class MedikamentRepository {
-    private Map< String, TreeMap<Ablaufsdatum, Medikament>> lager =new HashMap<>();
+    private Map<String, TreeMap<Ablaufsdatum, Medikament>> lager = new HashMap<>();
     private Map<String, Statistik> statistik = new HashMap<>();
+
     private Statistik getStatistik(String pzn) {
-        return statistik.computeIfAbsent(pzn, k -> new Statistik( pzn));
+        return statistik.computeIfAbsent(pzn, k -> new Statistik(pzn));
     }
 
     // Medikament speichern oder aufstocken
-    public void save( Medikament m){
+    public void save(Medikament m) {
         // Wenn Medikament mit diesem pzn noch nicht enthalten ist, dann einfach eine neue Treemap erstellen und dort hinzufügen.
-        TreeMap<Ablaufsdatum, Medikament> meds=lager.computeIfAbsent(m.getTyp().getPzn(), k-> new TreeMap<>());
+        TreeMap<Ablaufsdatum, Medikament> meds = lager.computeIfAbsent(m.getTyp().getPzn(), k -> new TreeMap<>());
 
-        Ablaufsdatum mhd=m.ablaufsdatum();
-        if(meds.containsKey(mhd)){
+        Ablaufsdatum mhd = m.ablaufsdatum();
+        if (meds.containsKey(mhd)) {
             meds.get(mhd).updateQuantity(m.bestand()); //existiert es schon was mit selben pzn und ablaufdatum? bestand einfach hochzahlen
-        }else{
+        } else {
             meds.put(m.ablaufsdatum(), m); //selben pzn aber ablaufsDatum nicht gleich? Treemap dafür erstellen Packung speichern.
         }
 
@@ -30,29 +31,45 @@ public class MedikamentRepository {
         getStatistik(m.getTyp().getPzn()).setName(m.getTyp().name());
     }
 
-    public int count(String pzn){
-        TreeMap<Ablaufsdatum,Medikament> meds= findByPzn2(pzn);
-       Medikament medInstance;
-        int total=0;
-        Iterator <Map.Entry<Ablaufsdatum,Medikament>> itList =meds.entrySet().iterator();
-        while(itList.hasNext()){
-            medInstance=itList.next().getValue();
+    public int count(String pzn) {
+        TreeMap<Ablaufsdatum, Medikament> meds = findByPzn2(pzn);
+        Medikament medInstance;
+        List<Ablaufsdatum> toRemove = new ArrayList<>();
+
+        int total = 0;
+        Iterator<Map.Entry<Ablaufsdatum, Medikament>> itList = meds.entrySet().iterator();
+        while (itList.hasNext()) {
+            medInstance = itList.next().getValue();
             // Nur die noch Verwendbare Medikamente mitzahlen
-            if(!medInstance.isExpired()){
-                total+=medInstance.bestand();
-            }else{
+            if (!medInstance.isExpired()) {
+                total += medInstance.bestand();
+            } else {
                 getStatistik(medInstance.getTyp().getPzn()).addVerwerfen(medInstance.bestand());
-                //delete(medInstance.getPzn(), medInstance.ablaufsdatum());
+                delete(medInstance.getTyp().getPzn(), medInstance.ablaufsdatum());
                 itList.remove();
             }
         }
         return total;
     }
 
-    public TreeMap<Ablaufsdatum,Medikament> findByPzn2(String pzn) {
-        TreeMap<Ablaufsdatum,Medikament> charges = lager.get(pzn);
-        if (charges == null) throw new IllegalArgumentException("PZN " + pzn + " existiert nicht im Lager!");;
+    public TreeMap<Ablaufsdatum, Medikament> findByPzn2(String pzn) {
+        TreeMap<Ablaufsdatum, Medikament> charges = lager.get(pzn);
+        if (charges == null) throw new IllegalArgumentException("PZN " + pzn + " existiert nicht im Lager!");
+        ;
         return charges;
+    }
+
+    public int helpSelling(TreeMap<Ablaufsdatum,Medikament> meds ,Medikament charge , int tosell){
+       int available= charge.bestand();
+        if (available <= tosell){ // Instance von Med kleiner als gewünscht? das erstmal nehmen und restlichen Stück in der nächsten Instanz"
+            charge.updateQuantity(-available); // komplette Charge verkaufen
+            tosell -= available;
+            meds.remove(charge.ablaufsdatum());  // leere Charge raus
+        }else{
+            charge.updateQuantity(-tosell);
+            return 0;
+        }
+        return tosell;
     }
 
     public int sellMed( String pzn, int menge){
@@ -62,15 +79,9 @@ public class MedikamentRepository {
         while ( !meds.isEmpty()) {
             Map.Entry<Ablaufsdatum,Medikament> entry = meds.firstEntry();
             Medikament charge = entry.getValue();
-            int available= charge.bestand();
-
-            if (available <= toSell) { // Instance von Med kleiner als gewünscht? das erstmal nehmen und restlichen Stück in der nächsten Instanz"
-                // komplette Charge verkaufen
-                charge.updateQuantity(available);
-                toSell -= available;
-                meds.remove(entry.getKey()); // leere Charge raus
+            if (toSell>0) {
+                toSell = helpSelling(meds,charge,toSell);
             } else {
-                charge.updateQuantity(toSell);
                 break;
             }
         }
@@ -169,6 +180,5 @@ public class MedikamentRepository {
         }
         return list;
     }
-
 }
 

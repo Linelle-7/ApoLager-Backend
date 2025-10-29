@@ -11,7 +11,6 @@ public class Main {
     public static void main(String[] args) {
         //  Service initialisieren
         LagerService service = new LagerService();
-
         Medikament para=new Medikament("04324188","Paracetamol", 5, new Ablaufsdatum (2025,10,1),5);
         Medikament ibu=new Medikament("01126111","Ibuprofen", 10, new Ablaufsdatum (2025,9,15),26);
         Medikament eff=new Medikament("01126122","Efferalgan", 20, new Ablaufsdatum (2025,6,5),20);

@@ -23,11 +23,11 @@ public class LagerServiceTest2 {
     void setup() {
         //medRep = new MedikamentRepository();
         service = new LagerService();
-        Medikament para=new Medikament("04324188","Paracetamol", 5,new Ablaufsdatum (2025,10,1),5);
-        Medikament ibu=new Medikament("01126111","Ibuprofen", 10,new Ablaufsdatum (2025,9,15),26);
-        Medikament eff=new Medikament("01126122","Efferalgan", 20, new Ablaufsdatum(2025,6,5),20);
-        Medikament pen=new Medikament("02126121","Penicillin", 10,new Ablaufsdatum (2025,1,22),30);
-        Medikament levo=new Medikament("04325189","Levotyroxin", 12,new Ablaufsdatum (2025,8,25),3);
+        Medikament para=new Medikament("04324188","Paracetamol", 5,new Ablaufsdatum (2025,10,30),5);
+        Medikament ibu=new Medikament("01126111","Ibuprofen", 10,new Ablaufsdatum (2026,9,15),26);
+        Medikament eff=new Medikament("01126122","Efferalgan", 20, new Ablaufsdatum(2025,12,5),20);
+        Medikament pen=new Medikament("02126121","Penicillin", 10,new Ablaufsdatum (2025,10,20),30);
+        Medikament levo=new Medikament("04325189","Levotyroxin", 12,new Ablaufsdatum (2025,10,25),3);
         service.addMedikament(para);
         service.addMedikament(new Medikament("01111111", "paracetamol", 12,new Ablaufsdatum (2025, 8, 25), 3));
         service.addMedikament(ibu);service.addMedikament(eff);service.addMedikament(pen);service.addMedikament(levo);
@@ -61,6 +61,8 @@ public class LagerServiceTest2 {
     void testIncreaseCount_ThrowExceptionForBadPznOrValue(String pzn,int count) {
         assertThrows(IllegalArgumentException.class,
                 () -> service.increaseCount(pzn,count, new Ablaufsdatum(2026, 1, 1)));
+
+
     }
 
     @ParameterizedTest
@@ -126,6 +128,8 @@ public class LagerServiceTest2 {
         Ablaufsdatum ablauf = new Ablaufsdatum(LocalDate.now().getYear() + 1, 1, 1);
         assertThat(ablauf.isExpired()).isFalse();
     }
+
+
 
 
 }

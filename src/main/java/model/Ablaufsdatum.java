@@ -5,7 +5,6 @@ import java.time.LocalDate;
 public class Ablaufsdatum implements Comparable<Ablaufsdatum>  {
     private LocalDate mhd;
 
-
     public Ablaufsdatum( int jahr, int monat, int tag){
         mhd=LocalDate.of(jahr,monat,tag);
     }
@@ -26,6 +25,10 @@ public class Ablaufsdatum implements Comparable<Ablaufsdatum>  {
     @Override
     public int compareTo(Ablaufsdatum other) {
         return this.getMhd().compareTo(other.mhd);
+    }
+    @Override
+    public String toString(){
+        return  this.getMhd().getYear()+"-"+this.getMhd().getMonthValue() + "-"+this.getMhd().getDayOfMonth();
     }
 
 }
