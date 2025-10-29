@@ -34,14 +34,14 @@ public class LagerServiceTest2 {
 
 
     @ParameterizedTest
-    @ValueSource(ints = {0, 1, Integer.MAX_VALUE})
+    @ValueSource(ints = {-1,0, 1, Integer.MAX_VALUE})
     void testAddMed(int menge){
         service.addMedikament(new Medikament("20250928", "TestMed", 20,new Ablaufsdatum(2025,12,12),menge ));
         System.out.println(service.printLager());
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {0, 1, Integer.MAX_VALUE})
+    @ValueSource(ints = {-1,0, 1, Integer.MAX_VALUE})
     void testIncreaseCount(int count) {
         service.increaseCount("04324188",count, new Ablaufsdatum(2026, 1, 1));
     }
@@ -50,24 +50,6 @@ public class LagerServiceTest2 {
     @ValueSource(ints = {-1,0, 1, Integer.MAX_VALUE})
     void testsellMed_throwException(int count){
         assertThrows(IllegalArgumentException.class,()-> service.sell("01126111", count));
-    }
-
-    @Test
-    void testGetMhd_shouldReturnCorrectDate() {
-        Ablaufsdatum ablauf = new Ablaufsdatum(2025, 12, 31);
-        assertThat(ablauf.getMhd()).isEqualTo(LocalDate.of(2025, 12, 31));
-    }
-
-    @Test
-    void testIsExpired_shouldReturnTrueForPastDate() {
-        Ablaufsdatum ablauf = new Ablaufsdatum(2020, 1, 1);
-        assertThat(ablauf.isExpired()).isTrue();
-    }
-
-    @Test
-    void testIsExpired_shouldReturnFalseForFutureDate() {
-        Ablaufsdatum ablauf = new Ablaufsdatum(LocalDate.now().getYear() + 1, 1, 1);
-        assertThat(ablauf.isExpired()).isFalse();
     }
 
     @Test
@@ -91,5 +73,29 @@ public class LagerServiceTest2 {
         assertThrows(IllegalArgumentException.class,
                 () -> service.increaseCount("99999999", 5, new Ablaufsdatum(2026, 1, 1)));
     }
+    @Test
+    void testIncreaseCount_negativeValue_throwException() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.increaseCount("04324188", -3, new Ablaufsdatum(2026, 1, 1)));
+    }
+
+    @Test
+    void testGetMhd_shouldReturnCorrectDate() {
+        Ablaufsdatum ablauf = new Ablaufsdatum(2025, 12, 31);
+        assertThat(ablauf.getMhd()).isEqualTo(LocalDate.of(2025, 12, 31));
+    }
+
+    @Test
+    void testIsExpired_shouldReturnTrueForPastDate() {
+        Ablaufsdatum ablauf = new Ablaufsdatum(2020, 1, 1);
+        assertThat(ablauf.isExpired()).isTrue();
+    }
+
+    @Test
+    void testIsExpired_shouldReturnFalseForFutureDate() {
+        Ablaufsdatum ablauf = new Ablaufsdatum(LocalDate.now().getYear() + 1, 1, 1);
+        assertThat(ablauf.isExpired()).isFalse();
+    }
+
 
 }
