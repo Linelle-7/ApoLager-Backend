@@ -1,6 +1,7 @@
 package de.Apotheke;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.CsvSource;
 import service.LagerService;
 import model.Ablaufsdatum;
 import model.Medikament;
@@ -46,9 +47,38 @@ public class LagerServiceTest2 {
         service.increaseCount("04324188",count, new Ablaufsdatum(2026, 1, 1));
     }
 
+
+
+    @ParameterizedTest
+    @CsvSource({
+            // pzn, count
+            "04324188, 1",
+            "04324188, 0",
+            "04325189, -1",
+            "01126122, 5",
+            "p, -10",
+            "p, 10"})
+    void testIncreaseCount_ThrowExceptionForBadPznOrValue(String pzn,int count) {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.increaseCount(pzn,count, new Ablaufsdatum(2026, 1, 1)));
+    }
+
     @ParameterizedTest
     @ValueSource(ints = {-1,0, 1, Integer.MAX_VALUE})
     void testsellMed_throwException(int count){
+        assertThrows(IllegalArgumentException.class,()-> service.sell("01126111", count));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            // pzn, count
+            "04324188, 1",
+            "04324188, 0",
+            "04325189, -1",
+            "01126122, 5",
+            "p, -10",
+            "p, 10"})
+    void testsellMed_throwExceptionForBadPznOrValue(String pzn,int count){
         assertThrows(IllegalArgumentException.class,()-> service.sell("01126111", count));
     }
 
