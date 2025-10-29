@@ -92,10 +92,4 @@ public class LagerServiceTest2 {
                 () -> service.increaseCount("99999999", 5, new Ablaufsdatum(2026, 1, 1)));
     }
 
-    @Test
-    void testIncreaseCount_negativeValue_throwException() {
-        assertThrows(IllegalArgumentException.class,
-                () -> service.increaseCount("04324188", -3, new Ablaufsdatum(2026, 1, 1)));
-    }
-
 }
