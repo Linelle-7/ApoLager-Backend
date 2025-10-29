@@ -15,10 +15,10 @@ public class MedikamentenTyp {
     public String name(){ return name;}
     public String getPzn(){ return pzn;}
     public double price(){ return price;}
-    public void changePrice( double p){ this.price=p;}
+    public void updatePrice( double p){ this.price=p;}
 
     @Override
     public String toString() {
-        return  "Name: " +name + ", PZN: " + pzn + ", Preis: " + price +" " ;
+        return  "Name: " +this.name() + ", PZN: " + this.getPzn() + ", Preis: " + this.price() +"€ " ;
     }
 }

@@ -3,15 +3,33 @@ package service;
 import data_Repo.MedikamentRepository;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Inventur {
     private MedikamentRepository repo;
     public Inventur(MedikamentRepository repo) {this.repo = repo;}
 
-    public void  vergleicheCsvUndSoftware(){
+    private static Map< String,Integer> checkQuantityInSoftware(  MedikamentRepository repo, String pzn, int qty){
+        Set<String> keySet= repo.getAllKeys();
+        if(!repo.existsByPzn(pzn)){
+            Map<String, Integer> map= new HashMap<>();
+            map.put(pzn, -1);
+            return map;
+        }
+        for(String s: keySet){
+            if ( pzn.equals(s)){
+                int tmpQty=repo.getStatistik(s).getGekauft()-repo.getStatistik(s).getVerkauft()-repo.  getStatistik(s).getVerworfen();
+                if(! (qty==tmpQty)){
+                    Map<String, Integer> map= new HashMap <>();
+                    map.put(pzn, tmpQty);
+                    return map;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static void  vergleicheCsvUndSoftware(MedikamentRepository repo){
         String dateiPfad = "inventur.csv"; // Pfad zur CSV-Datei
         List<String> lines = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(dateiPfad))) {
@@ -22,7 +40,7 @@ public class Inventur {
                 String[] parts = line.split(";");
                 String pzn = parts[0];
                 int menge = Integer.parseInt(parts[1]);
-                Map<String, Integer> result=repo.checkQuantityInSoftware(pzn, menge);
+                Map<String, Integer> result=checkQuantityInSoftware( repo,pzn, menge);
                     if( result!=null) {
                         Map.Entry<String, Integer> entry = result.entrySet().iterator().next();
                         parts[1]=String.valueOf(entry.getValue());
@@ -45,6 +63,4 @@ public class Inventur {
             throw new RuntimeException(e);
         }*/
     }
-
-    // TOD: inventur und Statistik in service und methoden noch teilen. In util : lesen, Schreiben....
 }

@@ -2,9 +2,8 @@ package service;
 
 import com.itextpdf.text.DocumentException;
 import data_Repo.MedikamentRepository;
-import model.Ablaufsdatum;
+import model.Ablaufdatum;
 import model.Medikament;
-import model.Statistik;
 
 import java.io.IOException;
 import java.util.*;
@@ -19,13 +18,13 @@ public class LagerService {
         repo.save(m);
     }
 
-    public void increaseCount(String pzn, int menge, Ablaufsdatum ablauf) {
+    public void increaseCount(String pzn, int menge, Ablaufdatum ablauf) {
         // Existenz Medikament mit gegebene pzn prüfen
         if (!repo.existsByPzn(pzn)) {
             throw new IllegalArgumentException("Medikament mit dem Pharmazentralnummer " + pzn + " existiert nicht!");
         } else {
             // Wenn Pzn existiert aber nur keine Instanz mit dem gegebenen Ablaufdatum hat, dann neue instanz mit diesem Datum erzeugen
-            Medikament neu = new Medikament( repo.copyTyp(pzn), ablauf,menge);
+            Medikament neu = new Medikament( repo.getTyp(pzn), ablauf,menge);
             repo.save(neu);
         }
     }
@@ -38,9 +37,9 @@ public class LagerService {
         // Prueft ob Dieses medikament ueberhaupt im Lager enthalten ist.
         if (repo.existsByPzn(pzn)){
             // jetzt prüfen, ob die Anforderung erfüllt sein kann
-            int capacity = repo.count(pzn);
+            int capacity = Verkaufservice.count(repo,pzn);
             if(capacity>=menge){
-                return repo.sellMed(pzn,menge);
+                return Verkaufservice.sellMed(repo,pzn,menge);
             }else{
                 throw new IllegalArgumentException("Nicht genug Bestand für das Medikament mit dem Pharmazentralnummer " + pzn+". Zu verkaufen " + menge+ " aber aktuell "+ capacity+ " im Bestand.");
             }
@@ -50,13 +49,11 @@ public class LagerService {
     }
 
     public void statistik() throws DocumentException, IOException {
-        Statistik stats= new Statistik(this.repo);
-        stats.statistik();
+        StatistikService.getStatistik(repo);
     }
 
     public void inventur()  {
-        Inventur inv= new Inventur(this.repo);
-        inv.vergleicheCsvUndSoftware();
+        Inventur.vergleicheCsvUndSoftware(repo);
     }
 
     public String printLager(){

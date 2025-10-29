@@ -1,6 +1,6 @@
 package de.Apotheke;
 
-import model.Ablaufsdatum;
+import model.Ablaufdatum;
 import model.Medikament;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,19 +21,19 @@ class LagerServiceTest {
     void setup() {
         //medRep = new MedikamentRepository();
         service = new LagerService();
-        Medikament para=new Medikament("04324188","Paracetamol", 5,new Ablaufsdatum (2025,10,1),5);
-        Medikament ibu=new Medikament("01126111","Ibuprofen", 10,new Ablaufsdatum (2025,9,15),26);
-        Medikament eff=new Medikament("01126122","Efferalgan", 20, new Ablaufsdatum(2025,6,5),20);
-        Medikament pen=new Medikament("02126121","Penicillin", 10,new Ablaufsdatum (2025,1,22),30);
-        Medikament levo=new Medikament("04325189","Levotyroxin", 12,new Ablaufsdatum (2025,8,25),3);
+        Medikament para=new Medikament("04324188","Paracetamol", 5,new Ablaufdatum(2025,10,1),5);
+        Medikament ibu=new Medikament("01126111","Ibuprofen", 10,new Ablaufdatum(2025,9,15),26);
+        Medikament eff=new Medikament("01126122","Efferalgan", 20, new Ablaufdatum(2025,6,5),20);
+        Medikament pen=new Medikament("02126121","Penicillin", 10,new Ablaufdatum(2025,1,22),30);
+        Medikament levo=new Medikament("04325189","Levotyroxin", 12,new Ablaufdatum(2025,8,25),3);
         service.addMedikament(para);
-        service.addMedikament(new Medikament("01111111", "paracetamol", 12,new Ablaufsdatum (2025, 8, 25), 3));
+        service.addMedikament(new Medikament("01111111", "paracetamol", 12,new Ablaufdatum(2025, 8, 25), 3));
         service.addMedikament(ibu);service.addMedikament(eff);service.addMedikament(pen);service.addMedikament(levo);
     }
 
     @Test
     void testAddMedikament() {
-        service.addMedikament(new Medikament("04888302", "Doliprane", 12,new Ablaufsdatum (2025, 8, 25), -3));
+        service.addMedikament(new Medikament("04888302", "Doliprane", 12,new Ablaufdatum(2025, 8, 25), -3));
         assertThat(service.getMedikamente()) // Hier haben wir erst eine Liste von Medikamente.
                 .hasSize(7)
                 .first()
@@ -45,7 +45,7 @@ class LagerServiceTest {
     @ValueSource(ints = {0, 10})
     void testIncreaseCount_validValues_shouldWork(int count) {
 
-        service.increaseCount("04324188", count,Ablaufsdatum.now());
+        service.increaseCount("04324188", count, Ablaufdatum.now());
         assertThat(service.getMedikamente().stream()
                 .filter(m -> m.getTyp().getPzn().equals("04324188"))
                 .mapToInt(Medikament::bestand)
@@ -55,16 +55,15 @@ class LagerServiceTest {
     @Test
     void testIncreaseCount_invalidPzn_shouldThrowException() {
         assertThrows(IllegalArgumentException.class,
-                () -> service.increaseCount("99999999", 5,Ablaufsdatum.now()));
+                () -> service.increaseCount("99999999", 5, Ablaufdatum.now()));
 
     }
-
 
     @Test
     void testIncreaseCount() {
         // existierende Medikamente aufstocken
 
-        service.increaseCount("04324188", 10,new Ablaufsdatum(2025, 9,25)); // Paracetamol erhöhen
+        service.increaseCount("04324188", 10,new Ablaufdatum(2025, 9,25)); // Paracetamol erhöhen
 
         //Menge erste vorkommen Med mit diesem pzn prüfen. stimmt es überein?
         assertThat(service.getMedikamente().stream()
@@ -90,7 +89,7 @@ class LagerServiceTest {
 
        //nicht existierende Medikamente aufstocken
         try{
-            service.increaseCount("04324100", 10,new Ablaufsdatum(2025, 9,25));
+            service.increaseCount("04324100", 10,new Ablaufdatum(2025, 9,25));
         }catch (Exception e){
             System.out.println(e);
         }

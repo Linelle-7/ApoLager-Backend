@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 public class PdfManager {
 
-    public PdfPTable CreateAndInsertdata(String[][] data){
+    public PdfPTable create_FillTable(String[][] data){
         PdfPTable table = new PdfPTable(5);
         // Kopfzeile einfügen
         addTableHeader(table);
