@@ -1,13 +1,12 @@
 package data_Repo;
 import model.Ablaufsdatum;
 import model.MedikamentenTyp;
-import service.Statistik;
+import model.Statistik;
 import model.Medikament;
 
-import java.time.LocalDate;
 import java.util.*;
 
-public class MedikamentRepository { // ......TODO Methode die explizit nach mhd sortiert anstatt treemap kompakt zu nutzen.
+public class MedikamentRepository {
     private Map< String, TreeMap<Ablaufsdatum, Medikament>> lager =new HashMap<>();
     private Map<String, Statistik> statistik = new HashMap<>();
     private Statistik getStatistik(String pzn) {
@@ -38,8 +37,8 @@ public class MedikamentRepository { // ......TODO Methode die explizit nach mhd 
         Iterator <Map.Entry<Ablaufsdatum,Medikament>> itList =meds.entrySet().iterator();
         while(itList.hasNext()){
             medInstance=itList.next().getValue();
-            // Nur
-            if(medInstance.ablaufsdatum().getMhd().isAfter(LocalDate.now())){
+            // Nur die noch Verwendbare Medikamente mitzahlen
+            if(!medInstance.isExpired()){
                 total+=medInstance.bestand();
             }else{
                 getStatistik(medInstance.getTyp().getPzn()).addVerwerfen(medInstance.bestand());
@@ -52,7 +51,7 @@ public class MedikamentRepository { // ......TODO Methode die explizit nach mhd 
 
     public TreeMap<Ablaufsdatum,Medikament> findByPzn2(String pzn) {
         TreeMap<Ablaufsdatum,Medikament> charges = lager.get(pzn);
-        if (charges == null) return null;
+        if (charges == null) throw new IllegalArgumentException("PZN " + pzn + " existiert nicht im Lager!");;
         return charges;
     }
 

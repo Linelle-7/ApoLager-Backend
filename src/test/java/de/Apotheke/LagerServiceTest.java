@@ -1,6 +1,5 @@
 package de.Apotheke;
 
-import data_Repo.MedikamentRepository;
 import model.Ablaufsdatum;
 import model.Medikament;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,7 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import service.LagerService;
 
-import java.time.LocalDate;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,12 +44,8 @@ class LagerServiceTest {
     @ParameterizedTest
     @ValueSource(ints = {0, 10})
     void testIncreaseCount_validValues_shouldWork(int count) {
-        Ablaufsdatum heute = new Ablaufsdatum(
-                LocalDate.now().getYear(),
-                LocalDate.now().getMonthValue(),
-                LocalDate.now().getDayOfMonth()
-        );
-        service.increaseCount("04324188", count,heute);
+
+        service.increaseCount("04324188", count,Ablaufsdatum.now());
         assertThat(service.getMedikamente().stream()
                 .filter(m -> m.getTyp().getPzn().equals("04324188"))
                 .mapToInt(Medikament::bestand)
@@ -59,13 +54,8 @@ class LagerServiceTest {
 
     @Test
     void testIncreaseCount_invalidPzn_shouldThrowException() {
-        Ablaufsdatum heute = new Ablaufsdatum(
-                LocalDate.now().getYear(),
-                LocalDate.now().getMonthValue(),
-                LocalDate.now().getDayOfMonth()
-        );
         assertThrows(IllegalArgumentException.class,
-                () -> service.increaseCount("99999999", 5, heute));
+                () -> service.increaseCount("99999999", 5,Ablaufsdatum.now()));
 
     }
 

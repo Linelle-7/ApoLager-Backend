@@ -4,9 +4,9 @@ import com.itextpdf.text.DocumentException;
 import data_Repo.MedikamentRepository;
 import model.Ablaufsdatum;
 import model.Medikament;
+import model.Statistik;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.*;
 
 public class LagerService {

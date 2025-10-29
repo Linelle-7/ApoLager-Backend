@@ -37,7 +37,9 @@ public class Medikament {
     public Ablaufsdatum ablaufsdatum(){ return mhd;}
     public int bestand(){ return bestand;}
     public void updateQuantity(int menge){ bestand += menge; }
-
+    public boolean isExpired() {
+        return this.ablaufsdatum().isExpired();
+    }
 
     @Override
     public String toString() {
