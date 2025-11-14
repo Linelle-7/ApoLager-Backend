@@ -5,6 +5,9 @@ import model.Statistik;
 import model.Medikament;
 import java.util.*;
 
+//TODO Medikament in json speichern, Komplexe Datentyps? DTO erzeugen und dann in Json
+// Prüfen, ob PZN im Lager existiert
+
 public class MedikamentRepository {
     private Map<String, TreeMap<Ablaufdatum, Medikament>> lager = new HashMap<>();
 
@@ -60,7 +63,7 @@ public class MedikamentRepository {
                 abgelaufen.add(mhd);
             }
         }
-        // Erst jetzt löschen (außerhalb der Iteration)
+        // jetzt löschen
         for (Ablaufdatum mhd : abgelaufen) {
             getStatistik(packung.get(mhd).getTyp().getPzn()).setStatus(packung.get(mhd).bestand(), "expired");
             delete(packung.get(mhd).getTyp().getPzn(), mhd);
@@ -88,12 +91,11 @@ public class MedikamentRepository {
         if (medTyp != null) {
             medTyp.remove(ablauf); // Packung mit dem entsprechenden Ablaufdatum verwerfen.
             if (medTyp.isEmpty()) {
-                lager.remove(pzn); // falls keine Packung mehr übrig bleibt
+                lager.remove(pzn); // Typ löschen, falls keine Packung mehr übrig bleibt
             }
         }
     }
-    //TODO Medikament in json speichern, Komplexe Datentyps? DTO erzeugen und dann in Json
-    // Prüfen, ob PZN im Lager existiert
+
     public boolean existsByPzn(String pzn) {
         return lager.containsKey(pzn);
     }
